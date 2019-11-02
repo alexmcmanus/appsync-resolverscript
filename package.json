@@ -14,9 +14,10 @@
     "test": "modern test",
     "format": "modern format",
     "lint": "modern lint",
-    "build": "tsc",
     "precommit": "modern precommit",
-    "prepublish": "yarn build && yarn test"
+    "build": "tsc",
+    "ci": "CI=true yarn build && CI=true yarn test",
+    "prepublish": "yarn ci"
   },
   "dependencies": {},
   "devDependencies": {
@@ -30,7 +31,7 @@
   "husky": {
     "hooks": {
       "pre-commit": "yarn precommit",
-      "pre-push": "yarn build && yarn test"
+      "pre-push": "yarn ci"
     }
   }
 }
