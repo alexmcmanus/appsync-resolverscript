@@ -1,0 +1,10 @@
+{
+  "printWidth": 120,
+  "generatorStarSpacing": true,
+  "spaceBeforeFunctionParen": true,
+  "singleQuote": true,
+  "jsxSingleQuote": true,
+  "semi": false,
+  "yieldStarSpacing": true,
+  "alignTernaryLines": false
+}
