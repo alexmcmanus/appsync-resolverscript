@@ -16,7 +16,8 @@
   },
   "rules": {
     // Override prettier options via .prettierrc.json
-    "prettierx/options": ["error", require("./.prettierrc.json")]
+    "prettierx/options": ["error", require("./.prettierrc.json")],
+    "@typescript-eslint/strict-boolean-expressions": "off"
   },
   "overrides": [
     // Only apply TypeScript-specific rules to *.ts
