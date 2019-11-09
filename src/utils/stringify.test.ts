@@ -12,18 +12,9 @@ describe('stringify', function () {
 
   const assertMatches = (value: unknown, indent?: number) => {
     return () => {
-      try {
-        const actual = stringify(value, indent)
-        const expected = JSON.stringify(value, undefined, indent)
-        expect(actual).toEqual(expected)
-      } catch (actualError) {
-        try {
-          const expected = JSON.stringify(value, undefined, indent)
-          expect(actualError).toEqual(expected)
-        } catch (expectedError) {
-          expect(actualError).toEqual(expectedError)
-        }
-      }
+      const actual = stringify(value, indent)
+      const expected = JSON.stringify(value, undefined, indent)
+      expect(actual).toEqual(expected)
     }
   }
 
@@ -84,7 +75,7 @@ describe('stringify', function () {
       relatedTo: first
     }
     first.relatedTo = second
-    assertMatches(first)()
+    expect(() => stringify(first)).toThrow('Converting circular structure to JSON')
   })
 
   it('supports bypassJSON', () => {
