@@ -127,7 +127,6 @@ Access the templates via the `requestTemplate` and `responseTemplate` _string_ p
 
 ## Roadmap
 
-- Basic `ResolverTemplateBuilder` with support for `vtl` template literals to bypass JSON serialization rules.
 - Add ability to reference Velocity variables directly.
 - Pre-populate Velocity variables for Unit and Pipeline templates.
 - Add ability to set Velocity variables.
