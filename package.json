@@ -30,6 +30,9 @@
     "ts-jest": "^24.1.0",
     "typescript": "^3.6.4"
   },
+  "peerDependencies": {
+    "@pulumi/aws": "^1.8.0"
+  },
   "scripts": {
     "clean": "git clean -fXd -e \\!node_modules -e \\!node_modules/**/*",
     "test": "node ./scripts/test.js src",

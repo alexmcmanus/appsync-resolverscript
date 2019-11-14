@@ -1,5 +1,10 @@
 import { stringify } from './utils/stringify'
 
+export interface ResolverTemplate {
+  requestTemplate: string
+  responseTemplate: string
+}
+
 export class ResolverTemplateBuilder {
   requestTemplate: string
   responseTemplate: string

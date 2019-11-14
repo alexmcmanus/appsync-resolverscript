@@ -6,18 +6,15 @@ Typed JavaScript abstraction for AWS AppSync resolver templates.
 
 ```js
 import * as assert from 'assert'
-import { ResolverTemplateBuilder, vtl } from 'appsync-resolverscript'
+import { sendRequest, vtl } from 'appsync-resolverscript'
 
-const templateBuilder = new ResolverTemplateBuilder()
-templateBuilder
-  .sendRequest({
-    operation: 'GetItem',
-    version: '2017-02-28',
-    key: {
-      id: vtl`$util.dynamodb.toDynamoDBJson($ctx.args.id)`
-    }
-  })
-  .then(vtl`$util.toJson($context.result)`)
+const templateBuilder = sendRequest({
+  operation: 'GetItem',
+  version: '2017-02-28',
+  key: {
+    id: vtl`$util.dynamodb.toDynamoDBJson($ctx.args.id)`
+  }
+}).then(vtl`$util.toJson($context.result)`)
 
 assert.strictEqual(
   templateBuilder.requestTemplate,
@@ -125,6 +122,28 @@ Both `sendRequest()` and `then()` are optional, and fall back to the following d
 
 Access the templates via the `requestTemplate` and `responseTemplate` _string_ properties.
 
+## Pulumi
+
+Pulumi is supported via the `PulumiResolver` class. It has the same usage as `aws.appsync.Resolver`, but the
+`requestTemplate` and `responseTemplate` properties are replaced with `template: ResolverTemplateBuilder`, and
+can be used as follows:
+
+```ts
+new PulumiResolver('getUserResolver', {
+  apiId: horselingApi.id,
+  dataSource: databaseDataSource.name,
+  type: 'Query',
+  field: 'getUser',
+  template: sendRequest({
+    version: '2017-02-28',
+    operation: 'GetItem',
+    key: {
+      id: vtl`$util.dynamodb.toDynamoDBJson($ctx.args.id)`
+    }
+  }).then('$util.toJson($ctx.prev.result)')
+})
+```
+
 ## Roadmap
 
 - Add ability to reference Velocity variables directly.
@@ -134,6 +153,9 @@ Access the templates via the `requestTemplate` and `responseTemplate` _string_ p
 - Add ability to reference `dynamodb` functions directly.
 - Add higher-level abstractions for DynamoDB API.
 - Support `sendRequest().catch()`.
+- Support `map()` and `filter()` on variables.
+- Add explicit support for pipeline resolvers.
+- Add explicit support for AWS CDK.
 - Add examples.
 
 ## Contributions
