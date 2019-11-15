@@ -16,6 +16,6 @@ if (!process.env.CI && argv.indexOf('--watchAll') === -1 && argv.indexOf('--watc
 
 jest.run(argv).then(() => {
   if (process.env.TRAVIS) {
-    codecov.handleInput.upload({})
+    codecov.handleInput.upload({ options: {} })
   }
 })
