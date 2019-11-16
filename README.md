@@ -4,6 +4,7 @@ Typed JavaScript abstraction for AWS AppSync resolver templates.
 
 [![Build Status](https://travis-ci.org/alexmcmanus/appsync-resolverscript.svg?branch=master)](https://travis-ci.org/alexmcmanus/appsync-resolverscript)
 [![codecov](https://codecov.io/gh/alexmcmanus/appsync-resolverscript/branch/master/graph/badge.svg)](https://codecov.io/gh/alexmcmanus/appsync-resolverscript)
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg)](code-of-conduct.md)
 
 ```js
 import * as assert from 'assert'
