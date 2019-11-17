@@ -1,10 +1,11 @@
-import { ResolverTemplateBuilder } from './ResolverTemplateBuilder'
+import { ResolverTemplateBuilder, Mapping } from './ResolverTemplateBuilder'
+import { AppSyncVelocityContext } from './AppSyncVelocityContext'
 
 export { stringify } from './utils/stringify'
 export { VelocityFragment, vtl } from './VelocityFragment'
 export { ResolverTemplate, ResolverTemplateBuilder } from './ResolverTemplateBuilder'
 export { PulumiResolver } from './PulumiResolver'
 
-export const sendRequest = (request: unknown): ResolverTemplateBuilder => {
-  return new ResolverTemplateBuilder().sendRequest(request)
+export const sendAppSyncRequest = (request: Mapping<AppSyncVelocityContext>): ResolverTemplateBuilder => {
+  return new ResolverTemplateBuilder(new AppSyncVelocityContext()).sendRequest(request)
 }

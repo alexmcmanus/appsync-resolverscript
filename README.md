@@ -6,11 +6,49 @@ Typed JavaScript abstraction for AWS AppSync resolver templates.
 [![codecov](https://codecov.io/gh/alexmcmanus/appsync-resolverscript/branch/master/graph/badge.svg)](https://codecov.io/gh/alexmcmanus/appsync-resolverscript)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg)](code-of-conduct.md)
 
-```js
-import * as assert from 'assert'
-import { sendRequest, vtl } from 'appsync-resolverscript'
+```ts
+new PulumiResolver('getUserResolver', {
+  apiId: horselingApi.id,
+  dataSource: databaseDataSource.name,
+  type: 'Query',
+  field: 'getUser',
+  template: sendAppSyncRequest({
+    version: '2017-02-28',
+    operation: 'GetItem',
+    key: {
+      id: vtl`$util.dynamodb.toDynamoDBJson($ctx.args.id)`
+    }
+  }).then('$util.toJson($ctx.prev.result)')
+})
+```
 
-const templateBuilder = sendRequest({
+- Generate AWS AppSync resolver Velocity templates from JavaScript or TypeScript.
+- Use type-checked JavaScript rather than VTL.
+- Publish patterns as NPM packages and re-use them.
+- Works with [AWS CDK](https://aws.amazon.com/cdk/) and [Pulumi](https://www.pulumi.com/).
+
+#### More Examples
+
+```js
+import { sendAppSyncRequest, vtl } from 'appsync-resolverscript'
+
+const templateBuilder = sendAppSyncRequest(context => ({
+  operation: 'GetItem',
+  version: '2017-02-28',
+  key: {
+    id: vtl`$util.dynamodb.toDynamoDBJson($ctx.args.id)`
+  }
+})).then(context.util.toJson(vtl`$context.result`))
+
+const { requestTemplate, responseTemplate } = templateBuilder
+```
+
+...is equivalent to...
+
+```js
+import { sendAppSyncRequest, vtl } from 'appsync-resolverscript'
+
+const templateBuilder = sendAppSyncRequest({
   operation: 'GetItem',
   version: '2017-02-28',
   key: {
@@ -18,23 +56,21 @@ const templateBuilder = sendRequest({
   }
 }).then(vtl`$util.toJson($context.result)`)
 
-assert.strictEqual(
-  templateBuilder.requestTemplate,
-  `{
+const { requestTemplate, responseTemplate } = templateBuilder
+```
+
+...is equivalent to...
+
+```js
+const requestTemplate = `{
   "operation": "GetItem",
   "version": "2017-02-28",
   "key": {
     "id": $util.dynamodb.toDynamoDBJson($ctx.args.id)
   }
 }`
-)
-assert.strictEqual(templateBuilder.responseTemplate, '$util.toJson($context.result)')
+const responseTemplate = '$util.toJson($context.result)'
 ```
-
-- Generate AWS AppSync resolver Velocity templates from JavaScript or TypeScript.
-- Use type-checked JavaScript rather than VTL.
-- Publish patterns as NPM packages and re-use them.
-- Works with [https://aws.amazon.com/cdk/](AWS CDK) and [https://www.pulumi.com/](Pulumi).
 
 ## Installation
 
@@ -52,9 +88,32 @@ $ npm install appsync-resolverscript --save-dev
 
 ## Usage
 
+### Convenience Functions
+
+`sendAppSyncRequest(request): ResolverTemplateBuilder<AppSyncVelocityTemplate>`
+
+A shorthand for:
+
+```ts
+new ResolverTemplateBuilder(new AppSyncVelocityContext()).sendRequest(request)
+```
+
+### Constructor
+
+`constructor(context)`
+
+**Parameters**:
+
+<dl>
+  <dt><em>context: VelocityContext</em></dt>
+  <dd>
+    the Velocity context that determines which functions and variables are available to the template.
+  </dd>
+</dl>
+
 ### Build Request Template
 
-`ResolverTemplateBuilder.sendRequest(request): ResolverTemplateBuilder`
+`sendRequest(request): ResolverTemplateBuilder`
 
 **Parameters**:
 
@@ -62,7 +121,9 @@ $ npm install appsync-resolverscript --save-dev
   <dt><em>request: any</em></dt>
   <dd>
     an object or value that is JSON serialized to form the template.
-    If <code>request</code> is a function, the value returned from the function is JSON-serialized.
+    If <code>request</code> is a function, the value returned from the function is JSON-serialized,
+    and it takes the <code>VelocityContext</code> that was passed to the 
+    <code>ResolverTemplateBuilder</code> constructor.
   </dd>
 </dl>
 
@@ -136,7 +197,7 @@ new PulumiResolver('getUserResolver', {
   dataSource: databaseDataSource.name,
   type: 'Query',
   field: 'getUser',
-  template: sendRequest({
+  template: sendAppSyncRequest({
     version: '2017-02-28',
     operation: 'GetItem',
     key: {
@@ -148,11 +209,12 @@ new PulumiResolver('getUserResolver', {
 
 ## Roadmap
 
+- Add ability to reference `dynamodb` functions directly.
 - Add ability to reference Velocity variables directly.
 - Pre-populate Velocity variables for Unit and Pipeline templates.
 - Add ability to set Velocity variables.
-- Add ability to reference core `util` functions directly.
-- Add ability to reference `dynamodb` functions directly.
+- Complete mapping of all core `util` functions.
+- Complete mapping of all `dynamodb` functions.
 - Add higher-level abstractions for DynamoDB API.
 - Support `sendRequest().catch()`.
 - Support `map()` and `filter()` on variables.
