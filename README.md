@@ -1,24 +1,26 @@
 # appsync-resolverscript
 
-Typed JavaScript abstraction for AWS AppSync resolver templates.
+Typed JavaScript abstraction for AWS AppSync resolver templates, supporting AWS CDK and Pulumi.
 
 [![Build Status](https://travis-ci.org/alexmcmanus/appsync-resolverscript.svg?branch=master)](https://travis-ci.org/alexmcmanus/appsync-resolverscript)
 [![codecov](https://codecov.io/gh/alexmcmanus/appsync-resolverscript/branch/master/graph/badge.svg)](https://codecov.io/gh/alexmcmanus/appsync-resolverscript)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg)](code-of-conduct.md)
 
-```ts
+```js
+import { PulumiResolver, sendAppSyncRequest, vtl } from 'appsync-resolverscript'
+
 new PulumiResolver('getUserResolver', {
   apiId: horselingApi.id,
   dataSource: databaseDataSource.name,
   type: 'Query',
   field: 'getUser',
-  template: sendAppSyncRequest({
+  template: sendAppSyncRequest(({ context, util }) => ({
     version: '2017-02-28',
     operation: 'GetItem',
     key: {
-      id: vtl`$util.dynamodb.toDynamoDBJson($ctx.args.id)`
+      id: vtl`$util.dynamodb.toDynamoDBJson(${context.args.id})`
     }
-  }).then('$util.toJson($ctx.prev.result)')
+  })).then(({ context, util }) => util.toJson(context.prev.result))
 })
 ```
 
@@ -32,13 +34,13 @@ new PulumiResolver('getUserResolver', {
 ```js
 import { sendAppSyncRequest, vtl } from 'appsync-resolverscript'
 
-const templateBuilder = sendAppSyncRequest(context => ({
+const templateBuilder = sendAppSyncRequest(({ context, util }) => ({
   operation: 'GetItem',
   version: '2017-02-28',
   key: {
-    id: vtl`$util.dynamodb.toDynamoDBJson($ctx.args.id)`
+    id: vtl`$util.dynamodb.toDynamoDBJson(${context.args.id})`
   }
-})).then(context.util.toJson(vtl`$context.result`))
+})).then(({ context, util }) => util.toJson(context.result))
 
 const { requestTemplate, responseTemplate } = templateBuilder
 ```
@@ -88,102 +90,144 @@ $ npm install appsync-resolverscript --save-dev
 
 ## Usage
 
-### Convenience Functions
+### Define the Request Template
 
-`sendAppSyncRequest(request): ResolverTemplateBuilder<AppSyncVelocityTemplate>`
+Use the `sendAppSyncRequest(request)` function to define the request template. E.g.
 
-A shorthand for:
-
-```ts
-new ResolverTemplateBuilder(new AppSyncVelocityContext()).sendRequest(request)
+```js
+// Defines: {}
+const templateBuilder = sendAppSyncRequest({})
 ```
 
-### Constructor
+`request` can be a primitive or object that will be stringified, a Velocity fragment, or a
+function that returns any of the above. It returns a builder object that can be used to
+chain the response template.
 
-`constructor(context)`
+Note that if you return a raw string as your template definition, it will be stringified to JSON. E.g.
 
-**Parameters**:
+```js
+// Defines: "#return"
+sendAppSyncRequest('#return')
+```
 
-<dl>
-  <dt><em>context: VelocityContext</em></dt>
-  <dd>
-    the Velocity context that determines which functions and variables are available to the template.
-  </dd>
-</dl>
+### Define the Response Template
 
-### Build Request Template
+From the builder returned by the request, use the `then(response)` function to define the response
+template, in the same way as the request. Again, the builder is returned for further function
+chaining. E.g.
 
-`sendRequest(request): ResolverTemplateBuilder`
+```js
+// Defines: {}
+templateBuilder.then({})
+```
 
-**Parameters**:
+Defining a response is optional, as it defaults to:
 
-<dl>
-  <dt><em>request: any</em></dt>
-  <dd>
-    an object or value that is JSON serialized to form the template.
-    If <code>request</code> is a function, the value returned from the function is JSON-serialized,
-    and it takes the <code>VelocityContext</code> that was passed to the 
-    <code>ResolverTemplateBuilder</code> constructor.
-  </dd>
-</dl>
+```vtl
+$util.toJson($context.result)
+```
 
-**Returns**:
+### Velocity Fragments
 
-<dl>
-  <dt><em>ResolverTemplateBuilder</em></dt>
-  <dd>
-    the builder, which allows you to specify the response template promise-style in the <code>then()</code> handler.
-  </dd>
-</dl>
+For any value in the request or response definition, you can suspend JSON stringification and
+provide raw VTL markup by using the `vtl` template literal. E.g.
 
-### Build Response Template
+```js
+// Defines: #return
+sendAppSyncRequest(vtl`#return`)
+```
 
-`ResolverTemplateBuilder.then(response): ResolverTemplateBuilder`
+Alternatively, use an instance of `VelocityFragment`.
 
-**Parameters**:
+You can jump back into JSON by embedding the `stringify()` method, but make sure you use the one
+from this package - it handles fragments, functions and variables correctly. E.g.
 
-<dl>
-  <dt><em>response: any</em></dt>
-  <dd>
-    an object or value that is JSON serialized to form the template.
-    If <code>response</code> is a function, the value returned from the function is JSON-serialized.
-  </dd>
-</dl>
+```js
+// Defines: #set( $person = { "name": "Bob" })
+sendAppSyncRequest(vtl`#set( $person = ${stringify({ name: 'Bob' })})`)
+```
 
-**Returns**:
+### Function Templates
 
-<dl>
-  <dt><em>ResolverTemplateBuilder</em></dt>
-  <dd>
-    the builder, which allows you to specify the response template promise-style in the <code>then()</code> handler.
-  </dd>
-</dl>
+The request or response templates can be defined using a function that returns the template structure.
+This function gets passed the Velocity context as a parameter, providing access to variables and
+functions. You can implement any logic you like in the function, but remember, any JavaScript
+conditional logic or loops are executed at deploy time, not when the template is executed - the
+template definition is the value returned by the function. E.g.
 
-If there are multiple calls to `sendRequest()` or `then()`, the last ones take precedence.
+```js
+// If useKey === true, defines  : $context.args.key
+// If useKey === false, defines : { "id": $context.args.id }
+sendAppSyncRequest(() => {
+  const useKey = // ... get from somewhere.
+  if (useKey) {
+    return vtl`$context.args.key`
+  } else {
+    return {
+      id: vtl`$context.args.id`
+    }
+  }
+})
+```
 
-### Template Directives
+### AppSync Functions
 
-To step outside the strict JSON serialization of the template, use the `vtl` template literal - the contents
-will be injected directly into the template. Alternatively, use an instance of `VelocityFragment`.
+All of the standard AppSync functions are available via the Velocity context passed to function
+templates (\* this is still WIP). Parameters passed to AppSync functions are stringified to JSON. E.g.
 
-### Defaults
+```js
+// Defines: $context.util.toJson(1, "two")
+sendAppSyncRequest(velocityContext => velocityContext.util.toJson(1, 'two'))
+```
 
-Both `sendRequest()` and `then()` are optional, and fall back to the following defaults:
+You may want to use object-destructuring on the `velocityContext` parameter to make this a little
+less verbose, especially if you are calling functions in many places:
 
-<dl>
-  <dt><em>sendRequest()</em></dt>
-  <dd>
-    <code>{}</code>
-  </dd>
-  <dt><em>then()</em></dt>
-  <dd>
-    <code>$util.toJson($context.result)</code>
-  </dd>
-</dl>
+```js
+// Defines: '$context.util.toJson(1, "two")'
+sendAppSyncRequest(({ util }) => util.toJson(1, 'two'))
+```
 
-### Velocity Templates
+### AppSync Context Variables
 
-Access the templates via the `requestTemplate` and `responseTemplate` _string_ properties.
+The standard AppSync context object is available as a `context` property on the Velocity context passed
+to function templates (\* this is still WIP). Sorry, overloading the term context is a bit confusing. E.g.
+
+```js
+// Defines: { "id": $context.args.id }
+sendAppSyncRequest(velocityContext => {
+  id: velocityContext.context.args.id
+})
+```
+
+or
+
+```js
+// Defines: { "id": $context.args.id }
+sendAppSyncRequest(({ context }) => ({ id: context.args.id }))
+```
+
+Once you get to an args value or result, you can navigate through to any sub-properties (although
+the sub-properties are not type-checked, as the TypeScript doesn't know the shape of your args or results). E.g.
+
+```js
+// Defines: { "id": $context.args.id }
+then(({ context, util }) => util.toJson(context.result.items))
+```
+
+### Get the VTL Markup
+
+The builder returned by `sendAppSyncRequest(request)` has `requestTemplate` and `responseTemplate`
+properties to get the declared request and response mapping template as Velocity Template Language
+markup. E.g.
+
+```js
+const templateBuilder = sendAppSyncRequest('myRequest').then('myResponse')
+assert.deepEqual('"myRequest"', templateBuilder.requestTemplate)
+assert.deepEqual('"myResponse"', templateBuilder.responseTemplate)
+```
+
+Note: you don't generally need to use these properties if you use the CDK or Pulumi-specific classes.
 
 ## Pulumi
 
@@ -197,20 +241,19 @@ new PulumiResolver('getUserResolver', {
   dataSource: databaseDataSource.name,
   type: 'Query',
   field: 'getUser',
-  template: sendAppSyncRequest({
+  template: sendAppSyncRequest(({ context, util }) => ({
     version: '2017-02-28',
     operation: 'GetItem',
     key: {
-      id: vtl`$util.dynamodb.toDynamoDBJson($ctx.args.id)`
+      id: vtl`$util.dynamodb.toDynamoDBJson(${context.args.id})`
     }
-  }).then('$util.toJson($ctx.prev.result)')
+  })).then(({ context, util }) => util.toJson(context.prev.result))
 })
 ```
 
 ## Roadmap
 
 - Add ability to reference `dynamodb` functions directly.
-- Add ability to reference Velocity variables directly.
 - Pre-populate Velocity variables for Unit and Pipeline templates.
 - Add ability to set Velocity variables.
 - Complete mapping of all core `util` functions.
@@ -219,7 +262,9 @@ new PulumiResolver('getUserResolver', {
 - Support `sendRequest().catch()`.
 - Support `map()` and `filter()` on variables.
 - Add explicit support for pipeline resolvers.
+- Review namespacing of modules - don't import everything at root.
 - Add explicit support for AWS CDK.
+- Explore using JSX to build more complex templates from components.
 - Add examples.
 
 ## Contributions

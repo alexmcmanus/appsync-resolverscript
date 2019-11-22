@@ -1,11 +1,11 @@
 import { sendAppSyncRequest } from './index'
 
 describe('index', () => {
-  it('sendAppSyncRequest() returns an AppSync ResolverTemplateBuilder', () => {
-    const template = sendAppSyncRequest(velocityContext => velocityContext.util.toJson('request')).then(
-      velocityContext => velocityContext.util.toJson('response')
+  it('sendAppSyncRequest() returns an ResolverTemplateBuilder configured for requests and responses', () => {
+    const template = sendAppSyncRequest(velocityContext => velocityContext.context.args.id).then(
+      velocityContext => velocityContext.context.result
     )
-    expect(template.requestTemplate).toEqual('$util.toJson("request")')
-    expect(template.responseTemplate).toEqual('$util.toJson("response")')
+    expect(template.requestTemplate).toEqual('$context.args.id')
+    expect(template.responseTemplate).toEqual('$context.result')
   })
 })
