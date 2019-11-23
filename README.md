@@ -18,7 +18,7 @@ new PulumiResolver('getUserResolver', {
     version: '2017-02-28',
     operation: 'GetItem',
     key: {
-      id: vtl`$util.dynamodb.toDynamoDBJson(${context.args.id})`
+      id: util.dynamodb.toDynamoDBJson(context.args.id)
     }
   })).then(({ context, util }) => util.toJson(context.prev.result))
 })
@@ -245,7 +245,7 @@ new PulumiResolver('getUserResolver', {
     version: '2017-02-28',
     operation: 'GetItem',
     key: {
-      id: vtl`$util.dynamodb.toDynamoDBJson(${context.args.id})`
+      id: $util.dynamodb.toDynamoDBJson(context.args.id)
     }
   })).then(({ context, util }) => util.toJson(context.prev.result))
 })
@@ -253,7 +253,6 @@ new PulumiResolver('getUserResolver', {
 
 ## Roadmap
 
-- Add ability to reference `dynamodb` functions directly.
 - Pre-populate Velocity variables for Unit and Pipeline templates.
 - Add ability to set Velocity variables.
 - Complete mapping of all core `util` functions.
