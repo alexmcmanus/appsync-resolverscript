@@ -1,5 +1,5 @@
 import { stringify } from './utils/stringify'
-import { DynamoDB } from './DynamoDb'
+import { DynamoDB } from './DynamoDB'
 import { VelocityFragment } from './VelocityFragment'
 
 describe('DynamoDB', () => {

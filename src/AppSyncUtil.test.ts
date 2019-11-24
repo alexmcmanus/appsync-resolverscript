@@ -1,7 +1,7 @@
 import { AppSyncUtil } from './AppSyncUtil'
 import { VelocityFragment } from './VelocityFragment'
 import { stringify } from './utils/stringify'
-import { DynamoDB } from './DynamoDb'
+import { DynamoDB } from './DynamoDB'
 
 describe('AppSyncUtil', () => {
   it('dynamodb provides access to DynamoDB functions', () => {
