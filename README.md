@@ -7,20 +7,14 @@ Typed JavaScript abstraction for AWS AppSync resolver templates, supporting AWS 
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg)](code-of-conduct.md)
 
 ```js
-import { PulumiResolver, sendAppSyncRequest, vtl } from 'appsync-resolverscript'
+import { PulumiResolver, operations } from 'appsync-resolverscript'
 
 new PulumiResolver('getUserResolver', {
   apiId: horselingApi.id,
   dataSource: databaseDataSource.name,
   type: 'Query',
   field: 'getUser',
-  template: sendAppSyncRequest(({ context, util }) => ({
-    version: '2017-02-28',
-    operation: 'GetItem',
-    key: {
-      id: util.dynamodb.toDynamoDBJson(context.args.id)
-    }
-  })).then(({ context, util }) => util.toJson(context.prev.result))
+  template: operations.dynamodb.getItem(({ context }) => ({ id: context.args.id }))
 })
 ```
 
@@ -32,16 +26,24 @@ new PulumiResolver('getUserResolver', {
 #### More Examples
 
 ```js
+import { sendAppSyncRequest, operations } from 'appsync-resolverscript'
+
+const templateBuilder = operations.dynamodb.getItem(({ context }) => ({ id: context.args.id }))
+const { requestTemplate, responseTemplate } = templateBuilder
+```
+
+...is equivalent to...
+
+```js
 import { sendAppSyncRequest, vtl } from 'appsync-resolverscript'
 
 const templateBuilder = sendAppSyncRequest(({ context, util }) => ({
   operation: 'GetItem',
   version: '2017-02-28',
   key: {
-    id: vtl`$util.dynamodb.toDynamoDBJson(${context.args.id})`
+    id: util.dynamodb.toDynamoDBJson(context.args.id)
   }
 })).then(({ context, util }) => util.toJson(context.result))
-
 const { requestTemplate, responseTemplate } = templateBuilder
 ```
 
@@ -54,10 +56,9 @@ const templateBuilder = sendAppSyncRequest({
   operation: 'GetItem',
   version: '2017-02-28',
   key: {
-    id: vtl`$util.dynamodb.toDynamoDBJson($ctx.args.id)`
+    id: vtl`$util.dynamodb.toDynamoDBJson($context.args.id)`
   }
 }).then(vtl`$util.toJson($context.result)`)
-
 const { requestTemplate, responseTemplate } = templateBuilder
 ```
 
@@ -68,7 +69,7 @@ const requestTemplate = `{
   "operation": "GetItem",
   "version": "2017-02-28",
   "key": {
-    "id": $util.dynamodb.toDynamoDBJson($ctx.args.id)
+    "id": $util.dynamodb.toDynamoDBJson($context.args.id)
   }
 }`
 const responseTemplate = '$util.toJson($context.result)'
@@ -215,6 +216,8 @@ the sub-properties are not type-checked, as the TypeScript doesn't know the shap
 then(({ context, util }) => util.toJson(context.result.items))
 ```
 
+Note that the `ctx` abbreviation is not supported.
+
 ### Get the VTL Markup
 
 The builder returned by `sendAppSyncRequest(request)` has `requestTemplate` and `responseTemplate`
@@ -228,6 +231,19 @@ assert.deepEqual('"myResponse"', templateBuilder.responseTemplate)
 ```
 
 Note: you don't generally need to use these properties if you use the CDK or Pulumi-specific classes.
+
+## Operations
+
+Higher-level abstractions of the AppSync operations are available under `operations`. They all
+accept functions and VTL markup.
+
+### DynamoDB
+
+GetItem:
+
+```js
+const templateBuilder = operations.dynamodb.getItem(({ context }){ id: context.args.id })
+```
 
 ## Pulumi
 
