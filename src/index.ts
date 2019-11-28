@@ -3,6 +3,8 @@ import { AppSyncVelocityContext } from './AppSyncVelocityContext'
 import { UnitRequestContext } from './UnitRequestContext'
 import { UnitResponseContext } from './UnitResponseContext'
 import * as dynamodb from './operations/dynamodb'
+import { AppSyncUtil } from './AppSyncUtil'
+import { GlobalMappingContext } from './GlobalMappingContext'
 
 export { stringify } from './utils/stringify'
 export { VelocityFragment, vtl } from './VelocityFragment'
@@ -12,6 +14,9 @@ export { PulumiResolver } from './PulumiResolver'
 export const operations = {
   dynamodb
 }
+
+export const context = new GlobalMappingContext()
+export const util = new AppSyncUtil()
 
 export const sendAppSyncRequest = (
   request: Mapping<AppSyncVelocityContext<UnitRequestContext>>

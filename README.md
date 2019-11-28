@@ -7,14 +7,14 @@ Typed JavaScript abstraction for AWS AppSync resolver templates, supporting AWS 
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg)](code-of-conduct.md)
 
 ```js
-import { PulumiResolver, operations } from 'appsync-resolverscript'
+import { PulumiResolver, operations, context } from 'appsync-resolverscript'
 
 new PulumiResolver('getUserResolver', {
   apiId: horselingApi.id,
   dataSource: databaseDataSource.name,
   type: 'Query',
   field: 'getUser',
-  template: operations.dynamodb.getItem(({ context }) => ({ id: context.args.id }))
+  template: operations.dynamodb.getItem({ id: context.args.id })
 })
 ```
 
@@ -189,6 +189,16 @@ less verbose, especially if you are calling functions in many places:
 sendAppSyncRequest(({ util }) => util.toJson(1, 'two'))
 ```
 
+AppSync functions can also be imported at module scope, which allows you avoid the boilerplate
+of defining your request or response as a function:
+
+```js
+import { sendAppSyncRequest, util } from 'appsync-resolverscript'
+
+// Defines: '$context.util.toJson(1, "two")'
+sendAppSyncRequest(util.toJson(1, 'two'))
+```
+
 ### AppSync Context Variables
 
 The standard AppSync context object is available as a `context` property on the Velocity context passed
@@ -218,6 +228,19 @@ then(({ context, util }) => util.toJson(context.result.items))
 
 Note that the `ctx` abbreviation is not supported.
 
+The AppSync context object can also be imported at module scope, The downside of this approach is
+that the context object is a superset of request, response and pipeline function contexts, and so not
+all properties are appropriate for all mapping types (e.g. `context.result` could be mis-used in a
+request). The advantage is that it allows you avoid the boilerplate of defining your request
+or response as a function. E.g.
+
+```js
+import { sendAppSyncRequest, context } from 'appsync-resolverscript'
+
+// Defines: { "id": $context.args.id }
+sendAppSyncRequest({ id: context.args.id })
+```
+
 ### Get the VTL Markup
 
 The builder returned by `sendAppSyncRequest(request)` has `requestTemplate` and `responseTemplate`
@@ -242,7 +265,7 @@ accept functions and VTL markup.
 GetItem:
 
 ```js
-const templateBuilder = operations.dynamodb.getItem(({ context }){ id: context.args.id })
+const templateBuilder = operations.dynamodb.getItem({ id: context.args.id })
 ```
 
 ## Pulumi
@@ -257,13 +280,7 @@ new PulumiResolver('getUserResolver', {
   dataSource: databaseDataSource.name,
   type: 'Query',
   field: 'getUser',
-  template: sendAppSyncRequest(({ context, util }) => ({
-    version: '2017-02-28',
-    operation: 'GetItem',
-    key: {
-      id: $util.dynamodb.toDynamoDBJson(context.args.id)
-    }
-  })).then(({ context, util }) => util.toJson(context.prev.result))
+  template: operations.dynamodb.getItem({ id: context.args.id })
 })
 ```
 
