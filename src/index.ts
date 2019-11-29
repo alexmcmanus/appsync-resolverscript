@@ -24,7 +24,7 @@ export const sendAppSyncRequest = (
   return new ResolverTemplateBuilder(
     new AppSyncVelocityContext(new UnitRequestContext()),
     new AppSyncVelocityContext(new UnitResponseContext())
-  ).sendRequest(requestElements)
+  ).sendRequest(...requestElements)
 }
 
 // export const sendPipelineRequest
