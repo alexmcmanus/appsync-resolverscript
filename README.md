@@ -101,8 +101,8 @@ const templateBuilder = sendAppSyncRequest({})
 ```
 
 `request` can be a primitive or object that will be stringified, a Velocity fragment, or a
-function that returns any of the above. It returns a builder object that can be used to
-chain the response template.
+function that returns any of the above. Multiple arguments are concatenated. It returns a
+builder object that can be used to chain the response template.
 
 Note that if you return a raw string as your template definition, it will be stringified to JSON. E.g.
 

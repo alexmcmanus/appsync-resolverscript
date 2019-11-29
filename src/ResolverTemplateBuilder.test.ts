@@ -48,4 +48,11 @@ describe('ResolverTemplateBuilder', () => {
     expect(builder.requestTemplate).toEqual('$util.toJson($context.args.id)')
     expect(builder.responseTemplate).toEqual('$util.toJson($context.result)')
   })
+
+  it('If there are multiple arguments to sendRequest() or then(), they are concatenated', () => {
+    const builder = new ResolverTemplateBuilder(new VelocityContext(), new VelocityContext())
+    builder.sendRequest(1, 2, 3).then(4, 5, 6)
+    expect(builder.requestTemplate).toEqual('1\n2\n3')
+    expect(builder.responseTemplate).toEqual('4\n5\n6')
+  })
 })

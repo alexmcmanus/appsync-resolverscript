@@ -19,12 +19,12 @@ export const context = new GlobalMappingContext()
 export const util = new AppSyncUtil()
 
 export const sendAppSyncRequest = (
-  request: Mapping<AppSyncVelocityContext<UnitRequestContext>>
+  ...requestElements: Array<Mapping<AppSyncVelocityContext<UnitRequestContext>>>
 ): ResolverTemplateBuilder<AppSyncVelocityContext<UnitRequestContext>, AppSyncVelocityContext<UnitResponseContext>> => {
   return new ResolverTemplateBuilder(
     new AppSyncVelocityContext(new UnitRequestContext()),
     new AppSyncVelocityContext(new UnitResponseContext())
-  ).sendRequest(request)
+  ).sendRequest(requestElements)
 }
 
 // export const sendPipelineRequest

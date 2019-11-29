@@ -38,13 +38,21 @@ export class ResolverTemplateBuilder<
     return `${stringify(value, 2)}`
   }
 
-  sendRequest = (request: Mapping<RequestContext>): ResolverTemplateBuilder<RequestContext, ResponseContext> => {
-    this.requestTemplate = this.resolveTemplateValue(request, this.requestContext)
+  sendRequest = (
+    ...requestElements: Array<Mapping<RequestContext>>
+  ): ResolverTemplateBuilder<RequestContext, ResponseContext> => {
+    this.requestTemplate = requestElements
+      .map(request => this.resolveTemplateValue(request, this.requestContext))
+      .join('\n')
     return this
   }
 
-  then = (response: Mapping<ResponseContext>): ResolverTemplateBuilder<RequestContext, ResponseContext> => {
-    this.responseTemplate = this.resolveTemplateValue(response, this.responseContext)
+  then = (
+    ...responseElements: Array<Mapping<ResponseContext>>
+  ): ResolverTemplateBuilder<RequestContext, ResponseContext> => {
+    this.responseTemplate = responseElements
+      .map(response => this.resolveTemplateValue(response, this.responseContext))
+      .join('\n')
     return this
   }
 }
