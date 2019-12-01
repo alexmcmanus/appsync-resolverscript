@@ -7,14 +7,14 @@ Typed JavaScript abstraction for AWS AppSync resolver templates, supporting AWS 
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg)](code-of-conduct.md)
 
 ```js
-import { PulumiResolver, operations, context } from 'appsync-resolverscript'
+import { PulumiResolver, sendAppSyncRequest, operations, context } from 'appsync-resolverscript'
 
 new PulumiResolver('getUserResolver', {
   apiId: horselingApi.id,
   dataSource: databaseDataSource.name,
   type: 'Query',
   field: 'getUser',
-  template: operations.dynamodb.getItem({ id: context.args.id })
+  template: sendAppSyncRequest(operations.dynamodb.getItem({ id: context.args.id }))
 })
 ```
 
@@ -258,14 +258,15 @@ Note: you don't generally need to use these properties if you use the CDK or Pul
 ## Operations
 
 Higher-level abstractions of the AppSync operations are available under `operations`. They all
-accept functions and VTL markup.
+accept functions and VTL markup, and return a mapping definition that can be used in
+`sendAppSyncRequest()`.
 
 ### DynamoDB
 
 GetItem:
 
 ```js
-const templateBuilder = operations.dynamodb.getItem({ id: context.args.id })
+const templateBuilder = sentAppSyncRequest(operations.dynamodb.getItem({ id: context.args.id }))
 ```
 
 ## Pulumi
@@ -280,7 +281,7 @@ new PulumiResolver('getUserResolver', {
   dataSource: databaseDataSource.name,
   type: 'Query',
   field: 'getUser',
-  template: operations.dynamodb.getItem({ id: context.args.id })
+  template: sendAppSyncRequest(operations.dynamodb.getItem({ id: context.args.id }))
 })
 ```
 
