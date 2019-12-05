@@ -287,6 +287,7 @@ new PulumiResolver('getUserResolver', {
 
 ## Roadmap
 
+- Add typing to fragments and `util` functions.
 - Pre-populate Velocity variables for Unit and Pipeline templates.
 - Add ability to set Velocity variables.
 - Complete mapping of all core `util` functions.
