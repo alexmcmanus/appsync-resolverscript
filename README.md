@@ -18,7 +18,7 @@ new PulumiResolver('getUserResolver', {
 })
 ```
 
-- Generate AWS AppSync resolver Velocity templates from JavaScript or TypeScript.
+- Declare AWS AppSync resolver Velocity templates in JavaScript or TypeScript.
 - Use type-checked JavaScript rather than VTL.
 - Publish patterns as NPM packages and re-use them.
 - Works with [AWS CDK](https://aws.amazon.com/cdk/) and [Pulumi](https://www.pulumi.com/).
@@ -241,6 +241,30 @@ import { sendAppSyncRequest, context } from 'appsync-resolverscript'
 sendAppSyncRequest({ id: context.args.id })
 ```
 
+### Velocity Types
+
+If you are working in Typescript, AppSync function parameters and return values are typed.
+So too are the non-dynamic properties from the Velocity context. E.g.
+
+```ts
+// Typescript errors:
+// - defaultIfNullOrEmpty(string, string)
+// - $context.identity.claims is an object
+// - false is a boolean
+sendAppSyncRequest(util.defaultIfNullOrEmpty(context.identity.claims, false))
+```
+
+The default type of a Velocity fragment is `AnyType`, which matches any other type. This means that
+you don't have to worry about the type of any fragments, although you can choose to type them if
+you want to enable the type-checking. E.g.
+
+```ts
+// Typescript errors:
+// - defaultIfNullOrEmpty(string, string)
+// - $context.identity.claims is an object
+sendAppSyncRequest(util.defaultIfNullOrEmpty(vtl<object>`$context.identity.claims`, '[]'))
+```
+
 ### Get the VTL Markup
 
 The builder returned by `sendAppSyncRequest(request)` has `requestTemplate` and `responseTemplate`
@@ -288,6 +312,7 @@ new PulumiResolver('getUserResolver', {
 ## Roadmap
 
 - Add typing to fragments and `util` functions.
+- Add typing where possible to the appsync context.
 - Pre-populate Velocity variables for Unit and Pipeline templates.
 - Add ability to set Velocity variables.
 - Complete mapping of all core `util` functions.
