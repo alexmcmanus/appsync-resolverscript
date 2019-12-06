@@ -1,12 +1,7 @@
 import { stringify } from './utils/stringify'
-import { VelocityContext } from './VelocityContext'
+import { VelocityContext, VelocityContextImpl } from './VelocityContext'
 import { UnitRequestContext } from './UnitRequestContext'
 import { UnitResponseContext } from './UnitResponseContext'
-import { AppSyncContext } from './AppSyncContext'
-
-interface AnyVariable {
-  [key: string]: unknown
-}
 
 export interface ResolverTemplate {
   requestTemplate: string
@@ -23,7 +18,7 @@ export class ResolverTemplateBuilder<
 > {
   requestTemplate: string
   responseTemplate: string
-  velocityContext = new VelocityContext(new AppSyncContext())
+  velocityContext = new VelocityContextImpl()
 
   constructor () {
     this.requestTemplate = '{}'

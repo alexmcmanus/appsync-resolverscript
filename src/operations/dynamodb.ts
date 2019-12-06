@@ -1,7 +1,6 @@
 import { Mapping } from '../ResolverTemplateBuilder'
-import { VelocityContext } from '../VelocityContext'
+import { VelocityContext, VelocityContextImpl } from '../VelocityContext'
 import { UnitRequestContext } from '../UnitRequestContext'
-import { AppSyncContext } from '../AppSyncContext'
 
 interface DynamoDBKey {
   [key: string]: unknown
@@ -12,7 +11,7 @@ type DynamoDBFn = <T extends UnitRequestContext>(context: VelocityContext<T>) =>
 export const getItem = <T extends UnitRequestContext = UnitRequestContext>(
   keyOrFn: DynamoDBKey | DynamoDBFn
 ): Mapping<T> => {
-  const velocityContext = new VelocityContext(new AppSyncContext())
+  const velocityContext = new VelocityContextImpl()
   const key = typeof keyOrFn === 'function' ? keyOrFn(velocityContext) : keyOrFn
   const keyLength = Object.keys(key).length
   if (keyLength < 1) {

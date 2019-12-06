@@ -1,14 +1,13 @@
-import { VelocityContext } from './VelocityContext'
-import { AppSyncContext } from './AppSyncContext'
+import { VelocityContextImpl } from './VelocityContext'
 
-describe('VelocityContext', () => {
+describe('VelocityContextImpl', () => {
   it('The context exposes the $util functions', () => {
-    const context = new VelocityContext(new AppSyncContext())
+    const context = new VelocityContextImpl()
     expect(context.util).toBeDefined()
   })
 
   it('The context exposes the $context object', () => {
-    const context = new VelocityContext(new AppSyncContext())
+    const context = new VelocityContextImpl()
     expect(context.context).toBeDefined()
   })
 })
