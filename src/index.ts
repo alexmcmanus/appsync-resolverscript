@@ -1,10 +1,9 @@
 import { ResolverTemplateBuilder, Mapping } from './ResolverTemplateBuilder'
-import { AppSyncVelocityContext } from './AppSyncVelocityContext'
 import { UnitRequestContext } from './UnitRequestContext'
 import { UnitResponseContext } from './UnitResponseContext'
 import * as dynamodb from './operations/dynamodb'
 import { AppSyncUtil } from './AppSyncUtil'
-import { GlobalMappingContext } from './GlobalMappingContext'
+import { AppSyncContext } from './AppSyncContext'
 
 export { stringify } from './utils/stringify'
 export { VelocityFragment, vtl } from './VelocityFragment'
@@ -15,16 +14,16 @@ export const operations = {
   dynamodb
 }
 
-export const context = new GlobalMappingContext()
+export const context = new AppSyncContext()
 export const util = new AppSyncUtil()
 
-export const sendAppSyncRequest = (
-  ...requestElements: Array<Mapping<AppSyncVelocityContext<UnitRequestContext>>>
-): ResolverTemplateBuilder<AppSyncVelocityContext<UnitRequestContext>, AppSyncVelocityContext<UnitResponseContext>> => {
-  return new ResolverTemplateBuilder(
-    new AppSyncVelocityContext(new UnitRequestContext()),
-    new AppSyncVelocityContext(new UnitResponseContext())
-  ).sendRequest(...requestElements)
+export const sendAppSyncRequest = <
+  RequestContext extends UnitRequestContext = UnitRequestContext,
+  ResponseContext extends UnitResponseContext = UnitResponseContext
+>(
+  ...requestElements: Array<Mapping<RequestContext>>
+): ResolverTemplateBuilder<RequestContext, ResponseContext> => {
+  return new ResolverTemplateBuilder().sendRequest(...requestElements)
 }
 
 // export const sendPipelineRequest

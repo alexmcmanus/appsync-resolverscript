@@ -1,8 +1,12 @@
-export class VelocityFragment {
-  fragment: string
+import { AnyType } from './velocity-types'
+
+export class VelocityFragment<T = AnyType> {
+  readonly fragment: string
+  readonly _velocityType: T[]
 
   constructor (fragment: string) {
     this.fragment = fragment
+    this._velocityType = []
   }
 
   bypassJSON (): string {
@@ -10,7 +14,7 @@ export class VelocityFragment {
   }
 }
 
-export const vtl = (strings: TemplateStringsArray, ...keys: unknown[]): VelocityFragment => {
+export const vtl = <T = AnyType>(strings: TemplateStringsArray, ...keys: unknown[]): VelocityFragment<T> => {
   return new VelocityFragment(
     strings.map((string, index) => `${string}${index < keys.length ? keys[index] : ''}`).join('')
   )

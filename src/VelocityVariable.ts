@@ -1,32 +1,21 @@
-export interface DynamicVelocityVariable {
-  [key: string]: DynamicVelocityVariable
-}
+import { AnyType } from './velocity-types'
 
-export class VelocityVariable {
-  [key: string]: unknown
+export class VelocityVariable<T = AnyType> {
+  readonly parent?: VelocityVariable<unknown>
+  readonly name: string
+  readonly _velocityType: T[]
 
-  readonly path: string[]
+  constructor (name: string, parent?: VelocityVariable<unknown>) {
+    this.name = name
+    this.parent = parent
+    this._velocityType = []
+  }
 
-  constructor (path: string | string[]) {
-    this.path = Array.isArray(path) ? path : [path]
+  get path (): string {
+    return this.parent ? `${this.parent.path}.${this.name}` : this.name
   }
 
   bypassJSON (): string {
-    return `$${this.path.join('.')}`
+    return `$${this.path}`
   }
-}
-
-const variableProxyHandler: ProxyHandler<VelocityVariable> = {
-  get: function (target: VelocityVariable, prop: string, receiver: unknown): unknown {
-    if (prop in target) {
-      return Reflect.get(target, prop, receiver)
-    } else {
-      const path = target.path ? [...target.path, prop] : [prop]
-      return new Proxy(new VelocityVariable(path), variableProxyHandler)
-    }
-  }
-}
-
-export const createVelocityVariable = (path: string | string[]): DynamicVelocityVariable => {
-  return new Proxy(new VelocityVariable(path), variableProxyHandler) as DynamicVelocityVariable
 }

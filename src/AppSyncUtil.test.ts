@@ -3,6 +3,10 @@ import { VelocityFragment, vtl } from './VelocityFragment'
 import { stringify } from './utils/stringify'
 import { DynamoDB } from './DynamoDB'
 
+import { context } from './index'
+import { VelocityString } from './velocity-types'
+import { VelocityMap } from './VelocityMap'
+
 describe('AppSyncUtil', () => {
   it('dynamodb provides access to DynamoDB functions', () => {
     const util = new AppSyncUtil()

@@ -1,9 +1,10 @@
-import { createVelocityVariable, DynamicVelocityVariable } from './VelocityVariable'
+import { IdentityBase } from './Identity'
+import { VelocityMap } from './VelocityMap'
 
-export class UnitRequestContext {
-  readonly args: DynamicVelocityVariable
-
-  constructor () {
-    this.args = createVelocityVariable(['context', 'args'])
-  }
+export interface UnitRequestContext<
+  IdentityType extends IdentityBase = IdentityBase,
+  ArgsType extends VelocityMap = VelocityMap
+> {
+  readonly args: ArgsType
+  readonly identity: IdentityType
 }
